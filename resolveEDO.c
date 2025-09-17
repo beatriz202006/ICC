@@ -4,11 +4,14 @@
 #include "edo.h"
 #include "gauss_seidel.h"
 #include "utils.h"
+#include <likwid.h>
+
 
 int main() {
     // Força arredondamento para baixo
     fesetround(FE_DOWNWARD);
 
+    LIKWID_MARKER_INIT;
     int n;
     real_t a, b, ya, yb, p, q;
     EDo edo;
@@ -27,9 +30,10 @@ int main() {
     edo.yb = yb;
     edo.p = p;
     edo.q = q;
-
+    
     // Para cada linha de coeficientes r1 r2 r3 r4
     while (scanf("%lf %lf %lf %lf", &r1, &r2, &r3, &r4) == 4) {
+
         edo.r1 = r1;
         edo.r2 = r2;
         edo.r3 = r3;
@@ -45,9 +49,11 @@ int main() {
         real_t normaL2;
         int numIt;
 
+        LIKWID_MARKER_START("GaussSeidel");
         rtime_t t0 = timestamp();
         gaussSeidel(sl, Y, maxIt, tol, &normaL2, &numIt);
         rtime_t t1 = timestamp() - t0;
+        LIKWID_MARKER_STOP("GaussSeidel");
 
         // Imprime solução
         for (int i = 0; i < n; ++i)
@@ -60,5 +66,7 @@ int main() {
         free(Y);
         free(sl->D); free(sl->Di); free(sl->Ds); free(sl->B); free(sl);
     }
+
+    LIKWID_MARKER_CLOSE;
     return 0;
 }
