@@ -1,3 +1,6 @@
+/*Beatriz Pontes Camargo 
+GRR 20242966
+*/
 #include <stdio.h>
 #include <stdlib.h>
 #include <fenv.h>

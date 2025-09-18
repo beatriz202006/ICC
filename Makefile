@@ -1,20 +1,24 @@
+# Beatriz Pontes Camargo 
+# GRR 20242966
+
 # PROGRAMA
     PROG = resolveEDO
     OBJS = $(PROG).o edo.o utils.o gauss_seidel.o # mod1.o mod2.o
-     VERIF = verificaEP02
+    VERIF = verificaEP02
 
 # Compilador
     CC     = gcc
 
 # Acrescentar onde apropriado as opções para incluir uso da biblioteca LIKWID
-    CFLAGS = -O0
-    LFLAGS = -lm
+CFLAGS = -O0 -DLIKWID_PERFMON -I${LIKWID_INCLUDE}
+LFLAGS = -L${LIKWID_LIB} -llikwid -lm
+
 
 # Lista de arquivos para distribuição. Acrescentar mais arquivos se necessário.
-DISTFILES = *.c *.h LEIAME* Makefile *.dat
+DISTFILES = *.c *.h LEIAME* Makefile *.dat likwid_script.sh
 DISTDIR = ${USER}
 
-.PHONY: clean purge dist all
+.PHONY: clean purge dist all perm
 
 %.o: %.c %.h utils.h
 	$(CC) -c $(CFLAGS) -o $@ $<
@@ -27,6 +31,9 @@ $(VERIF): $(VERIF).c
 
 testeFormato: $(PROG) $(VERIF)
 	@cat teste.dat | ./$(PROG) | ./$(VERIF)
+
+all: $(PROG)
+	chmod +x likwid.sh
 
 clean:
 	@echo "Limpando sujeira ..."
@@ -42,3 +49,6 @@ dist: purge
 	@ln -s . $(DISTDIR)
 	@tar -chzvf $(DISTDIR).tgz $(addprefix ./$(DISTDIR)/, $(DISTFILES))
 	@rm -f $(DISTDIR)
+
+perm:
+	chmod +x likwid_script.sh
