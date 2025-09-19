@@ -9,12 +9,12 @@
 # Compilador
     CC     = gcc
 
-# Acrescentar onde apropriado as opções para incluir uso da biblioteca LIKWID
+# Para incluir uso da biblioteca LIKWID
 CFLAGS = -O0 -DLIKWID_PERFMON -I${LIKWID_INCLUDE}
 LFLAGS = -L${LIKWID_LIB} -llikwid -lm
 
 
-# Lista de arquivos para distribuição. Acrescentar mais arquivos se necessário.
+# Lista de arquivos para distribuição
 DISTFILES = *.c *.h LEIAME* Makefile *.dat likwid_script.sh
 DISTDIR = ${USER}
 

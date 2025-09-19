@@ -1,0 +1,21 @@
+Beatriz Pontes Camargo
+GRR 20242966
+
+INSTRUÇÕES DE EXECUÇÃO
+Para executar o programa principal:
+    ./resolveEDO < nome_do_arquivo
+
+Em seguida, para executar o script que utiliza o LIKWID:
+    ./likwid_script.sh nome_do_arquivo
+
+OBSERVAÇÕES
+- O programa foi desenvolvido e testado nos laboratórios do DINF.
+- O script com o LIKWID funcionou corretamente em computadores do Lab 1-2 e Lab 3, 
+  porém apresentou problemas no Lab 4, onde o grupo FLOPS_DP não era reconhecido.
+
+- As saídas do programa SEM o LIKWID funcionam normalmente em todos os laboratórios testados.
+- O programa depende da biblioteca LIKWID para coleta dos contadores de desempenho. 
+  Caso a instalação do LIKWID esteja incompleta o script pode não funcionar.
+
+- O programa foi testado apenas em ambiente Linux, podendo não funcionar em outros sistemas operacionais.
+- Pode ser necessario o comando "chmod +x likwid_script.sh" antes de executar o script do likwid
