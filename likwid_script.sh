@@ -1,6 +1,6 @@
 # Beatriz Pontes Camargo
 # GRR 20242966
-
+./resolveEDO < "$1"
 #!/bin/bash
 # Uso: ./likwid_script.sh arquivo_entrada  => exemplo: ./likwid_script.sh teste.dat
 # ./resolveEDO < "$1" → executa o programa usando como entrada o arquivo recebido no argumento ($1)
