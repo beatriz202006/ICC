@@ -1,54 +1,39 @@
-# Beatriz Pontes Camargo 
-# GRR 20242966
+        CC = gcc
 
-# PROGRAMA
-    PROG = resolveEDO
-    OBJS = $(PROG).o edo.o utils.o gauss_seidel.o # mod1.o mod2.o
-    VERIF = verificaEP02
+    CFLAGS = -O0
+    LFLAGS = -lm
 
-# Compilador
-    CC     = gcc
-
-# Para incluir uso da biblioteca LIKWID
-CFLAGS = -O0 -DLIKWID_PERFMON -I${LIKWID_INCLUDE}
-LFLAGS = -L${LIKWID_LIB} -llikwid -lm
-
+      PROG = cgSolver
+      MODULES = utils sislin $(PROG)
+      OBJS = $(addsuffix .o,$(MODULES))
+      SRCS = $(addsuffix .c,$(MODULES)) $(addsuffix .h,$(MODULES))
 
 # Lista de arquivos para distribuição
-DISTFILES = *.c *.h LEIAME* Makefile *.dat likwid_script.sh
-DISTDIR = ${USER}
+DISTFILES = *.c *.h Makefile LEIAME
+DISTDIR = login1-login2
 
-.PHONY: clean purge dist all perm
+.PHONY: clean purge dist all
 
 %.o: %.c %.h utils.h
-	$(CC) -c $(CFLAGS) -o $@ $<
+	$(CC) -c $(CFLAGS) $<
 
-$(PROG): $(OBJS)
-	$(CC) $(CFLAGS) -o $@ $^ $(LFLAGS)
+$(PROG):  $(OBJS)
+	$(CC) -o $@ $^ $(LFLAGS)
 
-$(VERIF): $(VERIF).c
-	$(CC) -Wno-format -o $@ $<
-
-testeFormato: $(PROG) $(VERIF)
-	@cat teste.dat | ./$(PROG) | ./$(VERIF)
-
-all: $(PROG)
-	chmod +x likwid.sh
+debug:   CFLAGS+=-D__DEBUG__
+debug: $(PROG)
 
 clean:
-	@echo "Limpando sujeira ..."
-	@rm -f *~ *.bak
+	@echo "Limpando sujeira ....."
+	@rm -rf core *~ *.bak
 
-purge:  clean
-	@echo "Limpando tudo ..."
-	@rm -f core a.out $(OBJS)
-	@rm -f $(PROG) $(VERIF) $(DISTDIR) $(DISTDIR).tgz
+purge: clean
+	@echo "Fazendo a faxina ....."
+	@rm -f a.out *.o $(PROG)
+
 
 dist: purge
 	@echo "Gerando arquivo de distribuição ($(DISTDIR).tgz) ..."
 	@ln -s . $(DISTDIR)
 	@tar -chzvf $(DISTDIR).tgz $(addprefix ./$(DISTDIR)/, $(DISTFILES))
 	@rm -f $(DISTDIR)
-
-perm:
-	chmod +x likwid_script.sh

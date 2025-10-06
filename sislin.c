@@ -169,8 +169,15 @@ void geraPreCond(double *D, double *L, double *U, double w, int n, int k,
     }
   }
 
+  //SSOR/ Gauss-Seidel: M = (D + ωL)D^-1 (D + ωU )
+  else if (w >= 1.0 && w < 2.0){
+    for (int i = 0; i < n; i++) {
+    (*M)[i * n + i] = 1.0;
+    }
+  }
+
   else {
-    fprintf(stderr, "Pré-condicionador não implementado.\n");
+    fprintf(stderr, "Valor de w inválido para pré-condicionador.\n");
     exit(1);
   }
 

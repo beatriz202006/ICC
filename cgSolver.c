@@ -4,6 +4,28 @@
 #include "sislin.h"
 #include "utils.h"
 
+// Função para forward substitution: resolve (D + ωL) y = r
+void forward_substitution(double *D, double *L, double *r, double *y, int n, double omega) {
+    for (int i = 0; i < n; i++) {
+        double sum = 0.0;
+        for (int j = 0; j < i; j++) {
+            sum += omega * L[i * n +j] * y[j];
+        }
+        y[i] = (r[i] -sum) / (D[i * n + i]);
+    }
+} 
+
+// Função para backward substitution: resolve (D + ωU) z = y
+void backward_substitution(double *D, double *U, double *y, double *z, int n, double omega) {
+    for (int i = n - 1; i >=0; i--) {
+        double sum = 0.0;
+        for (int j = i + 1; j < n; j++) {
+            sum += omega * U[i * n + j] * z[j];
+        }
+        z[i] = (y[i] - sum) / (D[i * n + i]);
+    }
+}
+
 int main() {
     int n, k, maxit;
     double omega, epsilon;
@@ -81,6 +103,16 @@ int main() {
             z[i] = r[i] / D[i * n + i]; 
         }
 
+        //SSOR/ Gauss-Seidel
+        else if (omega >= 1.0 && omega < 2.0) {
+
+            //Aloca vetor y para forward substitution:
+            double *y = (double *)calloc(n, sizeof(double));
+            forward_substitution(D, L, r, y, n, omega);
+            backward_substitution(D, U, y, z, n, omega);
+            free(y);
+        }
+
         p[i] = z[i];
     }
 
@@ -141,6 +173,14 @@ int main() {
             //Com pré-condicionador de Jacobi
             else if (omega == 0.0) {
                 z[i] = r[i] / D[i * n + i];
+            }
+
+            //SSOR/ Gauss-Seidel
+            else if (omega >= 1.0 && omega < 2.0) {
+                double *y = (double *)calloc(n, sizeof(double));
+                forward_substitution(D, L, r, y, n, omega);
+                backward_substitution(D, U, y, z, n, omega);
+                free(y);
             }
         }
 
