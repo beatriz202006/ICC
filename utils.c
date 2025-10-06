@@ -8,7 +8,7 @@
 
     Forma de uso:
  
-    rtime_t tempo;
+    double tempo;
     tempo = timestamp();
     <trecho de programa do qual se deseja medir tempo>
     tempo = timestamp() - tempo;
