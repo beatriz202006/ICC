@@ -3,11 +3,10 @@
 #include <math.h>
 #include "sislin.h"
 #include "utils.h"
+#include <likwid.h>
 
 /* Funções auxiliares para implementar o pré-condicionador SSOR/Gauss-Seidel
    Usadas em sequência, permitem calcular z = M^−1 r = (D+ωU)^−1 * D * (D+ωL)^−1 r
-   Observação: D, L, U, ASP são fornecidos pela API do sislin (na versão v2 D,L,U foram
-   construídos como matrizes densas n x n), portanto continuam sendo indexados em [i*n + j].
 */
 
 /* forward substitution: resolve (D + ωL) y = r (triangular inferior) */
@@ -64,9 +63,11 @@ int main() {
 
     /* Inicializa gerador aleatório e ponteiros */
     srandom(20252);
+    likwid_markerInit();
+
     double *A = NULL;     /* agora A vem compactada (k*n) na v2 do sislin */
     double *b = NULL;
-    double *ASP = NULL;   /* ASP é gerada (n x n) pela função genSimetricaPositiva */
+    double *ASP = NULL;   /* ASP é gerada pela função genSimetricaPositiva */
     double *bsp = NULL;
     double *D = NULL;
     double *L = NULL;
@@ -77,13 +78,13 @@ int main() {
     double tempo_dlu = 0.0;
     double tempo_precond = 0.0;
 
-    /* Gera sistema k-diagonal (A compacta) e vetor b */
+    // Gera sistema k-diagonal (A compacta) e vetor b 
     criaKDiagonal(n, k, &A, &b);
 
-    /* Gera ASP = A^T * A (n x n denso) e bsp = A^T * b */
+    // Gera ASP = A^T * A e bsp = A^T * b 
     genSimetricaPositiva(A, b, n, k, &ASP, &bsp, &tempo_pc);
 
-    /* Decompõe ASP em D, L, U (retornados como matrizes densas n x n na v2) */
+    // Decompõe ASP em D, L, U 
     geraDLU(ASP, n, 0, &D, &L, &U, &tempo_dlu);
 
     /* Gera pré-condicionador M (mesma interface) */
@@ -97,7 +98,7 @@ int main() {
         return 3;
     }
 
-    /* Vetores auxiliares */
+    // Vetores auxiliares 
     double *r = (double *)calloc(n, sizeof(double));    /* resíduo */
     double *z = (double *)calloc(n, sizeof(double));    /* pré-condicionado z = M^-1 r */
     double *p = (double *)calloc(n, sizeof(double));    /* direção conjugada */
@@ -117,9 +118,7 @@ int main() {
         }
     }
 
-    /* Inicializa r, z e p:
-       Observação: versão original inicializava r=b (mesmo tendo gerado bsp). Mantive essa
-       lógica para preservar resultados iguais à v1. */
+    // Inicializa r, z e p
     for (int i = 0; i < n; i++) {
         r[i] = bsp[i];
 
@@ -152,16 +151,14 @@ int main() {
     double tempo_iter = 0.0;
     int iter;
 
-    /* Loop principal (até maxit). Conforme enunciado do Trabalho 2, a condição
-       de parada deve depender apenas do número de iterações nos testes; aqui
-       deixamos a verificação de norma também (como na v1), mas maxit controla parada. */
+    // Loop principal
     for (iter = 0; iter < maxit; iter++) {
         double temp_iter = timestamp();
 
+        likwid_markerStartRegion("op1");
         /* Ap = ASP * p
            Observação de otimização: ASP = A^T A possui meia-banda = k-1 (porque A tem meia-banda = k/2),
-           portanto ASP[i,j] == 0 para |i-j| > (k-1). Usamos isso para reduzir o custo de O(n^2) para O(n*k).
-           Mesmo ASP estando alocada como densa (n*n), limitamos o loop de j à vizinhança não-nula.
+           portanto ASP[i,j] == 0 para |i-j| > (k-1). Isso reduz o custo de O(n^2) para O(n*k).
         */
         int half_band_ASP = k - 1; /* meia-banda de ASP */
 
@@ -240,7 +237,7 @@ int main() {
         double rz_new = 0.0;
         for (int i = 0; i < n; i++) rz_new += r[i] * z[i];
 
-        /* Proteção contra divisão por zero (se rz == 0, então breakdown) */
+        /* Proteção contra divisão por zero */
         double beta = 0.0;
         if (rz != 0.0)
             beta = rz_new / rz;
@@ -254,6 +251,7 @@ int main() {
             p[i] = z[i] + beta * p[i];
         }
 
+        likwid_markerStopRegion("op1");
         tempo_iter += (timestamp() - temp_iter);
     }
 
@@ -261,9 +259,11 @@ int main() {
     if (iter > 0) tempo_iter = tempo_iter / iter;
     else tempo_iter = 0.0;
 
-    /* Calcula resíduo final (usa a função atualizada calcResiduoSL do sislin.c v2) */
+    /* Calcula resíduo final */
     double tempo_residuo = 0.0;
+    likwid_markerStartRegion("op2");
     double residuo = calcResiduoSL(A, b, x, n, k, &tempo_residuo);
+    likwid_markerStopRegion("op2");
 
     /* Saída (mesma forma da v1) */
     printf("%d\n", n);
@@ -280,7 +280,9 @@ int main() {
     /* Libera memória */
     free(A); free(b); free(ASP); free(D); free(L); free(U); free(M);
     free(x); free(x_prev); free(r); free(z); free(p); free(Ap); free(bsp);
-    if (y_ssor) free(y_ssor);
+    if (y_ssor) 
+        free(y_ssor);
 
+    likwid_markerClose();
     return 0;
 }

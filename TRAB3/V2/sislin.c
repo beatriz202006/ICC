@@ -6,9 +6,8 @@
 #include "utils.h"
 #include "sislin.h"
 
-// ------------------------------------------------------------
+
 // Funções auxiliares para acessar matriz k-diagonal compacta
-// ------------------------------------------------------------
 
 static inline int idxDiag(int i, int j, int k) {
     return j - i + k/2;
@@ -16,19 +15,21 @@ static inline int idxDiag(int i, int j, int k) {
 
 static inline double getA(double *A, int n, int k, int i, int j) {
     int d = idxDiag(i, j, k);
-    if (d < 0 || d >= k) return 0.0;
+    if (d < 0 || d >= k) 
+      return 0.0;
+
     return A[d*n + i];
 }
 
 static inline void setA(double *A, int n, int k, int i, int j, double val) {
     int d = idxDiag(i, j, k);
-    if (d < 0 || d >= k) return;
+    if (d < 0 || d >= k) 
+      return;
+    
     A[d*n + i] = val;
 }
 
-// ------------------------------------------------------------
 // Funções auxiliares originais
-// ------------------------------------------------------------
 
 static inline double generateRandomA(unsigned int i, unsigned int j, unsigned int k) {
     static double invRandMax = 1.0 / (double)RAND_MAX;
@@ -40,9 +41,7 @@ static inline double generateRandomB(unsigned int k) {
     return (double)(k<<2) * (double)random() * invRandMax;
 }
 
-// ------------------------------------------------------------
 // Criação da matriz k-diagonal compacta
-// ------------------------------------------------------------
 
 void criaKDiagonal(int n, int k, double **A, double **B)
 {
@@ -69,9 +68,9 @@ void criaKDiagonal(int n, int k, double **A, double **B)
         (*B)[i] = generateRandomB(k);
 }
 
-// ------------------------------------------------------------
-// ASP = A^T * A (ambas k-diagonais), resultado continua denso
-// ------------------------------------------------------------
+
+// ASP = A^T * A (ambas k-diagonais)
+
 
 void genSimetricaPositiva(double *A, double *b, int n, int k, double **ASP, double **bsp, double *tempo)
 {
@@ -108,10 +107,8 @@ void genSimetricaPositiva(double *A, double *b, int n, int k, double **ASP, doub
     *tempo = timestamp() - *tempo;
 }
 
-// ------------------------------------------------------------
-// Decomposição DLU apenas reorganiza valores existentes
-// ------------------------------------------------------------
 
+// Decomposição DLU apenas reorganiza valores existentes
 void geraDLU(double *A, int n, int k_unused, double **D, double **L, double **U, double *tempo)
 {
     *tempo = timestamp();
@@ -125,26 +122,21 @@ void geraDLU(double *A, int n, int k_unused, double **D, double **L, double **U,
         exit(1);
     }
 
-    // AQUI ESTÁ A CORREÇÃO: A é DENSO, não k-diagonal!
     for (int i = 0; i < n; i++) {
         for (int j = 0; j < n; j++) {
 
-            double val = A[i*n + j];   // <-- AQUI! não use getA()
+            double val = A[i*n + j];   
 
-            if (i == j) (*D)[i*n + j] = val;
-            else if (i > j) (*L)[i*n + j] = val;
-            else (*U)[i*n + j] = val;
+            if (i == j) (*D)[i*n + j] = val;      // D
+            else if (i > j) (*L)[i*n + j] = val;  // L
+            else (*U)[i*n + j] = val;             // U
         }
     }
 
     *tempo = timestamp() - *tempo;
 }
 
-
-// ------------------------------------------------------------
 // Pré-condicionador igual ao v1
-// ------------------------------------------------------------
-
 void geraPreCond(double *D, double *L, double *U, double w, int n, int k,
                  double **M, double *tempo)
 {
@@ -177,10 +169,7 @@ void geraPreCond(double *D, double *L, double *U, double w, int n, int k,
     *tempo = timestamp() - *tempo;
 }
 
-// ------------------------------------------------------------
 // Cálculo do resíduo usando matriz k-diagonal compacta
-// ------------------------------------------------------------
-
 double calcResiduoSL(double *A, double *b, double *X, int n, int k, double *tempo)
 {
     *tempo = timestamp();
