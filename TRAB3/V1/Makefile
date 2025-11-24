@@ -1,12 +1,12 @@
-        CC = gcc
+CC = gcc
 
-    CFLAGS = -O0
-    LFLAGS = -lm
+CFLAGS = -O3 -march=native -mavx -fopt-info-vec -DLIKWID_PERFMON
+LFLAGS = -llikwid -lm
 
-      PROG = cgSolver
-      MODULES = utils sislin $(PROG)
-      OBJS = $(addsuffix .o,$(MODULES))
-      SRCS = $(addsuffix .c,$(MODULES)) $(addsuffix .h,$(MODULES))
+PROG = cgSolver
+MODULES = utils sislin $(PROG)
+OBJS = $(addsuffix .o,$(MODULES))
+SRCS = $(addsuffix .c,$(MODULES)) $(addsuffix .h,$(MODULES))
 
 # Lista de arquivos para distribuição
 DISTFILES = *.c *.h Makefile LEIAME
@@ -17,10 +17,10 @@ DISTDIR = bpc24
 %.o: %.c %.h utils.h
 	$(CC) -c $(CFLAGS) $<
 
-$(PROG):  $(OBJS)
+$(PROG): $(OBJS)
 	$(CC) -o $@ $^ $(LFLAGS)
 
-debug:   CFLAGS+=-D__DEBUG__
+debug: CFLAGS+=-D__DEBUG__
 debug: $(PROG)
 
 clean:
@@ -30,7 +30,6 @@ clean:
 purge: clean
 	@echo "Fazendo a faxina ....."
 	@rm -f a.out *.o $(PROG)
-
 
 dist: purge
 	@echo "Gerando arquivo de distribuição ($(DISTDIR).tgz) ..."

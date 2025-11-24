@@ -3,6 +3,7 @@
 #include <math.h>
 #include "sislin.h"
 #include "utils.h"
+#include <likwid.h>
 
 /* Funções auxiliares para implementar o pré-condicionador SSOR/Gauss-Seidel
 Usadas em sequência, permitem calcular z =M^−1r = (D+ωU)^−1*D(D+ωL)^−1r */
@@ -62,6 +63,8 @@ int main() {
 
     //Inicializa o gerador de números aleatórios, ponteiros de matrizes e vetores:
     srandom(20252);
+    likwid_markerInit();
+
     double *A = NULL;
     double *b = NULL;
     double *ASP = NULL;
@@ -144,6 +147,8 @@ int main() {
     for (iter = 0; iter < maxit; iter++) {
         double temp_iter = timestamp();
 
+        likwid_markerStartRegion("op1");
+
         //Ap = ASP * p
         for (int i = 0; i < n; i++) {
             Ap[i] = 0.0;
@@ -219,6 +224,7 @@ int main() {
             p[i] = z[i] + beta * p[i];
         }
 
+        likwid_markerStopRegion("op1");
         tempo_iter += (timestamp() - temp_iter);
     }
 
@@ -230,7 +236,9 @@ int main() {
     
     //Calcula resíduo final:
     double tempo_residuo = 0.0;
+    likwid_markerStartRegion("op2");
     double residuo = calcResiduoSL(A, b, x, n, k, &tempo_residuo);
+    likwid_markerStopRegion("op2");
 
     //Imprime resultados:
     printf("%d\n", n);
@@ -248,5 +256,6 @@ int main() {
     free(A); free(b); free(ASP); free(D); free(L); free(U); free(M);
     free(x); free(x_prev); free(r); free(z); free(p); free(Ap); free(bsp);
 
+    likwid_markerClose();
     return 0;
 }
